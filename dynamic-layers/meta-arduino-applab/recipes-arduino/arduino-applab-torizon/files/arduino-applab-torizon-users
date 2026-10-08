@@ -1,0 +1,18 @@
+#!/bin/sh
+# Set up the App Lab users at boot; a no-op once done. Also after an update
+# from an image without App Lab: OSTree keeps the old /etc/shadow and the new
+# image's first-boot scripts do not run.
+
+# 'arduino' logs in with the default password, to be changed at first use as
+# on Arduino's images
+if [ ! -e /etc/.arduino_passwd_expired ]; then
+    grep -q '^arduino:' /etc/shadow || grep '^arduino:' /usr/etc/shadow >> /etc/shadow
+    passwd -e arduino && touch /etc/.arduino_passwd_expired
+fi
+
+# 'torizon' is on UID/GID 1001 here, 1000 before: give it back the files in
+# its home that still carry the old IDs (1000 is now 'arduino')
+uid=$(id -u torizon) && gid=$(id -g torizon) || exit 0
+[ "$(stat -c %u /home/torizon/)" = "$uid" ] && exit 0
+chown -R -h --from=1000 "$uid" /home/torizon/
+chown -R -h --from=:1000 ":$gid" /home/torizon/
