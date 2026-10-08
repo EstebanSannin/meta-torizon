@@ -45,6 +45,12 @@ USERADDEXTENSION ?= "useradd-staticids"
 USERADD_UID_TABLES ?= "files/torizon-static-passwd"
 USERADD_GID_TABLES ?= "files/torizon-static-group"
 USERADD_ERROR_DYNAMIC ?= "skip"
+# Arduino App Lab (meta-arduino-applab) logs in as 'arduino' with UID 1000:
+# on machines with the arduino-applab feature give it UID/GID 1000 and move
+# 'torizon' to 1001 (same groups and sudo; Torizon relies on the name). Later
+# tables override earlier ones.
+USERADD_UID_TABLES:append = "${@bb.utils.contains('MACHINE_FEATURES', 'arduino-applab', ' files/arduino-applab-static-passwd', '', d)}"
+USERADD_GID_TABLES:append = "${@bb.utils.contains('MACHINE_FEATURES', 'arduino-applab', ' files/arduino-applab-static-group', '', d)}"
 
 # machines where Torizon is experimental
 EXPERIMENTALOVERRIDES = ""
